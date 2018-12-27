@@ -6,7 +6,7 @@ import ipfs from "./ipfs";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, buffer: null, ipfsHash: '' };
+  state = { web3: null, account: null, contract: null, buffer: null, ipfsHash: '', status: '' };
 
   componentDidMount = async () => {
     try {
@@ -15,12 +15,13 @@ class App extends Component {
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
+      // For debugging purposes
       console.log(accounts);
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       console.log(networkId);
-      const deployedNetwork = SimpleStorageContract.networks[5777];
+      const deployedNetwork = SimpleStorageContract.networks[networkId];
       const instance = new web3.eth.Contract(
         SimpleStorageContract.abi,
         deployedNetwork.address,
@@ -28,7 +29,7 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance });
+      this.setState({ web3, account: accounts[0], contract: instance });
       this.runExample();
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -40,26 +41,32 @@ class App extends Component {
   };
 
   runExample = async () => {
-    const { accounts, contract } = this.state;
-
-    // Stores a given value, 5 by default.
-    await contract.methods.set('FIVE').send({ from: accounts[0] });
+    const { contract } = this.state;
 
     // Get the value from the contract to prove it worked.
     const response = await contract.methods.get().call();
+    //for debugging
+    console.log(response);
+    console.log(this.state);
 
     // Update state with the result.
-    this.setState({ storageValue: response });
+    this.setState({ ipfsHash: response });
   };
 
-  handleSubmit = e => {
+  handleSubmit = async e => {
       e.preventDefault();
-      ipfs.files.add(this.state.buffer, (error, result) => {
+      const { account, contract } = this.state;
+      this.setState({ status: 'Uploading to ipfs' });
+      ipfs.files.add(this.state.buffer, async (error, result) => {
           if(error){
               console.error(error);
               return;
           }
-          return this.setState({ ipfsHash: result[0].hash });
+          this.setState({ status: 'Uploading to blockchain' });
+          // Stores a given ipfsHash
+          await contract.methods.set(result[0].hash).send({ from: account });
+          this.setState({ ipfsHash: await contract.methods.get().call() });
+          this.setState({ status: 'Transaction Successful' });
       });
   };
 
@@ -87,6 +94,7 @@ class App extends Component {
             <input type="file" onChange={this.captureFile} />
             <input type="submit" />
         </form>
+        <h5>{this.state.status}</h5>
       </div>
     );
   }
