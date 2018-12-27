@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.4.24;
 
 import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
@@ -9,11 +9,11 @@ contract TestSimpleStorage {
   function testItStoresAValue() public {
     SimpleStorage simpleStorage = SimpleStorage(DeployedAddresses.SimpleStorage());
 
-    simpleStorage.set(89);
+    simpleStorage.set("Test String");
 
-    uint expected = 89;
+    string memory expected = "Test String";
 
-    Assert.equal(simpleStorage.get(), expected, "It should store the value 89.");
+    Assert.equal(simpleStorage.get(), expected, "It should store the string 'Test String'");
   }
 
 }

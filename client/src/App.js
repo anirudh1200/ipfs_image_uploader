@@ -45,9 +45,6 @@ class App extends Component {
 
     // Get the value from the contract to prove it worked.
     const response = await contract.methods.get().call();
-    //for debugging
-    console.log(response);
-    console.log(this.state);
 
     // Update state with the result.
     this.setState({ ipfsHash: response });
@@ -57,14 +54,16 @@ class App extends Component {
       e.preventDefault();
       const { account, contract } = this.state;
       this.setState({ status: 'Uploading to ipfs' });
+      //Upload image to ipfs
       ipfs.files.add(this.state.buffer, async (error, result) => {
           if(error){
               console.error(error);
               return;
           }
           this.setState({ status: 'Uploading to blockchain' });
-          // Stores a given ipfsHash
+          // Stores a given ipfsHash to contract
           await contract.methods.set(result[0].hash).send({ from: account });
+          // Stores the ipfs hash to state
           this.setState({ ipfsHash: await contract.methods.get().call() });
           this.setState({ status: 'Transaction Successful' });
       });
@@ -84,11 +83,15 @@ class App extends Component {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
+    var url;
+    if(this.state.ipfsHash){
+        url = `https://ipfs.io/ipfs/${this.state.ipfsHash}`;
+    }
     return (
       <div className="App">
         <h1>Your Image</h1>
         <p>This image is stored on IPFS & the Ethereum Blockchain!</p>
-        <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt="Stored on IPFS & the Ethereum Blockchain"/>
+        <img src={url} alt="Stored on IPFS & the Ethereum Blockchain"/>
         <h2>Upload Image</h2>
         <form onSubmit={this.handleSubmit}>
             <input type="file" onChange={this.captureFile} />
