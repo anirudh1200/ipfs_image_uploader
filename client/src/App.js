@@ -47,19 +47,24 @@ class App extends Component {
 
     // Update state with the result.
     this.setState({ ipfsHash: response });
-    // Fetch data from url 'ipfs.io/ipfs/{ipfsHash}'
-    // This first converts the recieved data into Uint8Array
-    // then decrypts it to get original image
-    fetch(`https://ipfs.io/ipfs/${this.state.ipfsHash}`)
-        .then(res => {
-            res.arrayBuffer()
-                .then(buffer => {
-                    buffer = new Uint8Array(buffer);
-                    let decrypted = decrypt(buffer, this.state.password, this.state.iv);
-                    this.setState({ image: decrypted });
-                })
-        });
+
+    this.fetchData();
   };
+
+  // Fetch data from url 'ipfs.io/ipfs/{ipfsHash}'
+  // This first converts the recieved data into Uint8Array
+  // then decrypts it to get original image
+  fetchData = () => {
+      fetch(`https://ipfs.io/ipfs/${this.state.ipfsHash}`)
+          .then(res => {
+              res.arrayBuffer()
+                  .then(buffer => {
+                      buffer = new Uint8Array(buffer);
+                      let decrypted = decrypt(buffer, this.state.password, this.state.iv);
+                      this.setState({ image: decrypted });
+                  })
+          });
+  }
 
   // To convert selected file to Uint8Array format
   captureFile = e => {
@@ -95,8 +100,22 @@ class App extends Component {
           await contract.methods.set(result[0].hash).send({ from: account });
           // Stores the ipfs hash to state
           this.setState({ ipfsHash: await contract.methods.get().call() });
-          this.setState({ status: 'Transaction Successful' });
+          this.setState({ status: 'Transaction Successful. Image will be visible soon' });
+          this.fetchData();
       });
+  };
+
+  changePassword = e => {
+      let password = e.target.value;
+      for(let i=password.length; i<32; i++){
+          password += '0';
+      }
+      this.setState({ password });
+  }
+
+  submitPassword = e => {
+      e.preventDefault();
+      this.fetchData();
   }
 
   render() {
@@ -112,6 +131,10 @@ class App extends Component {
         <h2>Upload Image</h2>
         <form onSubmit={this.handleSubmit}>
             <input type="file" onChange={this.captureFile} />
+            <input type="submit" />
+        </form>
+        <form onSubmit={this.submitPassword}>
+            <input type='text' onChange={this.changePassword} />
             <input type="submit" />
         </form>
         <h5>{this.state.status}</h5>
