@@ -2,9 +2,8 @@ import React, { Component } from "react";
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./utils/getWeb3";
 import ipfs from "./ipfs";
-import crypto from "crypto";
+import { encrypt, decrypt } from './encryption';
 import "./App.css";
-import axios from 'axios';
 
 class App extends Component {
   state = { web3: null, account: null, contract: null, buffer: null, ipfsHash: '', status: '', image: '', password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', iv: 'aaaaaaaaaaaaaaaa' };
@@ -21,11 +20,10 @@ class App extends Component {
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
-      console.log(networkId);
       const deployedNetwork = SimpleStorageContract.networks[networkId];
       const instance = new web3.eth.Contract(
-        SimpleStorageContract.abi,
-        deployedNetwork.address,
+          SimpleStorageContract.abi,
+          deployedNetwork.address,
       );
 
       // Set web3, accounts, and contract to the state, and then proceed with an
@@ -49,31 +47,40 @@ class App extends Component {
 
     // Update state with the result.
     this.setState({ ipfsHash: response });
-    console.log(this.state.ipfsHash);
+    // Fetch data from url 'ipfs.io/ipfs/{ipfsHash}'
+    // This first converts the recieved data into Uint8Array
+    // then decrypts it to get original image
     fetch(`https://ipfs.io/ipfs/${this.state.ipfsHash}`)
         .then(res => {
-            console.log(res);
             res.arrayBuffer()
                 .then(buffer => {
                     buffer = new Uint8Array(buffer);
-                    let decrypted = this.decrypt(buffer);
-                    console.log('decrypted:',decrypted);
+                    let decrypted = decrypt(buffer, this.state.password, this.state.iv);
                     this.setState({ image: decrypted });
                 })
         });
   };
 
+  // To convert selected file to Uint8Array format
+  captureFile = e => {
+      e.preventDefault();
+      const file = e.target.files[0];
+      const reader = new window.FileReader();
+      reader.readAsArrayBuffer(file);
+      reader.onloadend = () => {
+          this.setState({buffer: Buffer(reader.result)});
+      }
+  };
+
+  // When the user clicks on submit it encrypts the file first then uploads to ipfs
   handleSubmit = async e => {
       e.preventDefault();
       this.setState({ status: 'Uploading to ipfs' });
-      console.log(this.state.buffer);
-      let encrypted = this.encrypt(this.state.buffer);
+      let encrypted = encrypt(this.state.buffer, this.state.password, this.state.iv);
       this.uploadFile(encrypted);
-      console.log(encrypted);
-      console.log(this.decrypt(encrypted));
   };
 
-  //Upload image to ipfs
+  //Upload encrypted image to ipfs
   uploadFile = (encryptedData) => {
       const { account, contract } = this.state;
       ipfs.files.add(encryptedData, async (error, result) => {
@@ -90,28 +97,6 @@ class App extends Component {
           this.setState({ ipfsHash: await contract.methods.get().call() });
           this.setState({ status: 'Transaction Successful' });
       });
-  }
-
-  captureFile = e => {
-      e.preventDefault();
-      const file = e.target.files[0];
-      const reader = new window.FileReader();
-      reader.readAsArrayBuffer(file);
-      reader.onloadend = () => {
-          this.setState({buffer: Buffer(reader.result)});
-      }
-  };
-
-  encrypt = (buffer) => {
-    var cipher = crypto.createCipheriv('aes-256-ctr',this.state.password,this.state.iv)
-    var crypted = Buffer.concat([cipher.update(buffer),cipher.final()]);
-    return crypted;
-  }
-
-  decrypt = (buffer) => {
-    var decipher = crypto.createDecipheriv('aes-256-ctr',this.state.password,this.state.iv)
-    var dec = Buffer.concat([decipher.update(buffer) , decipher.final()]);
-    return dec;
   }
 
   render() {
