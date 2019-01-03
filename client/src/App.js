@@ -6,7 +6,17 @@ import { encrypt, decrypt } from './encryption';
 import "./App.css";
 
 class App extends Component {
-  state = { web3: null, account: null, contract: null, buffer: null, ipfsHash: '', status: '', image: '', password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', iv: 'aaaaaaaaaaaaaaaa' };
+  // Here the password needs to be a 32byte and iv needs to be 16byte only
+  state = { web3: null,
+      account: null,
+      contract: null,
+      buffer: null,
+      ipfsHash: '',
+      status: '',
+      image: '',
+      password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      iv: 'aaaaaaaaaaaaaaaa'
+  };
 
   componentDidMount = async () => {
     try {
@@ -113,6 +123,9 @@ class App extends Component {
       this.setState({ password });
   }
 
+  // Each time a new password is set, the app tries to fetch data from ipfs
+  // and decrypt the fetch data
+  // Only if the password is correct we get the image
   submitPassword = e => {
       e.preventDefault();
       this.fetchData();
