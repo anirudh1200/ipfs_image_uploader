@@ -98,7 +98,7 @@ class App extends Component {
   //Upload encrypted image to ipfs
   uploadFile = (encryptedData) => {
       const { account, contract } = this.state;
-      ipfs.files.add(encryptedData, async (error, result) => {
+      ipfs.add(encryptedData, async (error, result) => {
           if(error){
               console.error(error);
               return;
