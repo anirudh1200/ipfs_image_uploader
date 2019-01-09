@@ -9,12 +9,14 @@ contract SimpleStorage {
 
     uint public totalHashes;
     hash[] hashList;
+    address manager;
 
     constructor() public {
         totalHashes = 0;
+        manager = msg.sender;
     }
 
-    function addHash(string ipfsUrl) public {
+    function addHash(string ipfsUrl) public restrict {
         hash memory newHash = hash({
            ipfsHash: ipfsUrl,
            timestamp: now
@@ -23,10 +25,15 @@ contract SimpleStorage {
         totalHashes++;
     }
 
-    function getHash(uint index) public view returns(string, uint){
+    function getHash(uint index) public view restrict returns(string, uint){
         return(
             hashList[index].ipfsHash,
             hashList[index].timestamp
         );
+    }
+
+    modifier restrict(){
+        require(msg.sender == manager);
+        _;
     }
 }

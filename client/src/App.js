@@ -7,6 +7,8 @@ import "./App.css";
 
 class App extends Component {
   // Here the password needs to be a 32byte and iv needs to be 16byte only
+  // Have currently kept a default generic password which is useless but rather
+  // only for demonstration purposes which currently cannot be changed
   state = { web3: null,
       account: null,
       contract: null,
@@ -115,22 +117,6 @@ class App extends Component {
       });
   };
 
-  changePassword = e => {
-      let password = e.target.value;
-      for(let i=password.length; i<32; i++){
-          password += '0';
-      }
-      this.setState({ password });
-  }
-
-  // Each time a new password is set, the app tries to fetch data from ipfs
-  // and decrypt the fetch data
-  // Only if the password is correct we get the image
-  submitPassword = e => {
-      e.preventDefault();
-      this.fetchData();
-  }
-
   render() {
     var image;
     if(this.state.image){
@@ -144,10 +130,6 @@ class App extends Component {
         <h2>Upload Image</h2>
         <form onSubmit={this.handleSubmit}>
             <input type="file" onChange={this.captureFile} />
-            <input type="submit" />
-        </form>
-        <form onSubmit={this.submitPassword}>
-            <input type='text' onChange={this.changePassword} />
             <input type="submit" />
         </form>
         <h5>{this.state.status}</h5>
