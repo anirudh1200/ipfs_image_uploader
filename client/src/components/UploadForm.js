@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -15,7 +16,8 @@ class FormDialog extends Component {
     open: false,
     buffer: '',
     status: '',
-    description: ''
+    description: '',
+    type: ''
   };
 
   buttonStyle = {
@@ -35,7 +37,6 @@ class FormDialog extends Component {
 
   changeDescription = e => {
     this.setState({description: e.target.value});
-    console.log(this.state.description);
   }
 
   // To convert selected file to Uint8Array format
@@ -45,22 +46,19 @@ class FormDialog extends Component {
       const reader = new window.FileReader();
       reader.readAsArrayBuffer(file);
       reader.onloadend = () => {
-          this.setState({buffer: Buffer(reader.result)}, () => {
-            console.log(this.state.buffer);
-          });
+          this.setState({buffer: Buffer(reader.result)});
       };
   };
 
   // When the user clicks on submit it encrypts the file first then uploads to ipfs
-  handleSubmit = async e => {
-      e.preventDefault();
+  handleSubmit = async (type) => {
+      this.setState({type});
       this.setState({ status: 'Uploading to ipfs' });
       let encrypted = encrypt(this.state.buffer, this.props.password, this.props.iv);
-      console.log(encrypted);
       this.uploadFile(encrypted);
   };
 
-  //Upload encrypted image to ipfs
+  //Upload encrypted docs to ipfs
   uploadFile = (encryptedData) => {
       const { account, contract } = this.props;
       ipfs.add(encryptedData, async (error, result) => {
@@ -72,10 +70,10 @@ class FormDialog extends Component {
           //For debugging
           console.log(result[0].hash);
           // Stores a given ipfsHash to contract
-          await contract.methods.addHash(result[0].hash, this.state.description).send({ from: account });
+          await contract.methods.addHash(result[0].hash, this.state.description, this.state.type).send({ from: account });
           // Stores the ipfs hash to state
           this.setState({ ipfsHash: await contract.methods.getHash(0).call() });
-          this.setState({ status: 'Transaction Successful. Image will be visible soon' });
+          this.setState({ status: 'Transaction Successful. Docs will be visible soon' });
           this.handleClose();
       });
   };
@@ -85,10 +83,10 @@ class FormDialog extends Component {
       <div>
         <Button onClick={this.handleClickOpen} variant="contained" color="secondary" style={this.buttonStyle}>Open form dialog</Button>
         <Dialog open={this.state.open} onClose={this.handleClose} aria-labelledby="form-dialog-title">
-          <DialogTitle id="form-dialog-title">Upload Image</DialogTitle>
+          <DialogTitle id="form-dialog-title">Upload Document</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Select the image you want to upload
+              Select the document you want to upload
             </DialogContentText>
             <TextField
               autoFocus
@@ -107,8 +105,13 @@ class FormDialog extends Component {
             <Button onClick={this.handleClose} color="primary">
               Cancel
             </Button>
-            <Button onClick={this.handleSubmit} color="primary">
-              Upload
+            <Button variant="contained" color="default" onClick={() => this.handleSubmit('image')}>
+              Upload Image
+              <CloudUploadIcon />
+            </Button>
+            <Button variant="contained" color="default" onClick={() => this.handleSubmit('pdf')}>
+              Upload Pdf
+              <CloudUploadIcon />
             </Button>
           </DialogActions>
         </Dialog>

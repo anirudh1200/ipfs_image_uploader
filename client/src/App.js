@@ -86,7 +86,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return{
     setInitials: (web3, account, contract) => dispatch({type: 'SET_ACCOUNT_CONTRACT', web3, account, contract}),
-    setHashValue: (hashValue, hashDesc) => dispatch({type: 'CHANGE_SELECTED_HASH', hashValue, hashDesc})
+    setHashValue: (hashValue, hashDesc, hashType) => dispatch({type: 'CHANGE_SELECTED_HASH', hashValue, hashDesc, hashType})
   }
 }
 

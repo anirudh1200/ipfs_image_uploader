@@ -24,7 +24,8 @@ const uploadReducer = (state = initState, action) => {
       return{
         ...state,
         selectedHash: action.hashValue,
-        selectedHashValue: action.hashDesc
+        selectedHashValue: action.hashDesc,
+        selectedHashType: action.hashType
       }
     default:
       console.log("Default reducer");

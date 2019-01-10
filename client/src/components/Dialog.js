@@ -24,13 +24,12 @@ class ImageDialog extends Component {
 
   componentDidMount = () => {
     this.setState({ open: true });
-    console.log(this.props);
     this.fetchData();
   };
 
   // Fetch data from url 'ipfs.io/ipfs/{ipfsHash}'
   // This first converts the recieved data into Uint8Array
-  // then decrypts it to get original image
+  // then decrypts it to get original document
   fetchData = () => {
       fetch(`https://ipfs.io/ipfs/${this.props.hashValue}`)
           .then(res => {
@@ -44,10 +43,13 @@ class ImageDialog extends Component {
   }
 
   render(){
-    console.log(this.props);
     let image;
     if(this.state.image){
-      image = <img src={'data:image/jpeg;base64,' + this.state.image.toString('base64')} alt='Error in fetching' />
+      if(this.props.hashType === 'pdf')
+        image = <embed src={'data:application/pdf;base64,' + this.state.image.toString('base64')} width="800px" height="1000px" />
+      else
+        image = <img src={'data:image/jpeg;base64,' + this.state.image.toString('base64')} alt='Error in fetching' />
+
     }
     if(this.props){
       return (
@@ -85,10 +87,10 @@ class ImageDialog extends Component {
 }
 
 const mapStateToProps = (state) => {
-  console.log(state);
   return{
     hashValue : state.selectedHash,
     hashDesc: state.selectedHashValue,
+    hashType: state.selectedHashType,
     password: state.password,
     iv: state.iv
   }

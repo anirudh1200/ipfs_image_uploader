@@ -6,6 +6,7 @@ contract SimpleStorage {
         string ipfsHash;
         string description;
         uint timestamp;
+        string docType;
     }
 
     uint public totalHashes;
@@ -17,20 +18,22 @@ contract SimpleStorage {
         manager = msg.sender;
     }
 
-    function addHash(string ipfsUrl, string desc) public restrict {
+    function addHash(string ipfsUrl, string desc, string _docType) public restrict {
         hash memory newHash = hash({
            ipfsHash: ipfsUrl,
            description: desc,
+           docType: _docType,
            timestamp: now
         });
         hashList.push(newHash);
         totalHashes++;
     }
 
-    function getHash(uint index) public view restrict returns(string, string, uint){
+    function getHash(uint index) public view restrict returns(string, string, string, uint){
         return(
             hashList[index].ipfsHash,
             hashList[index].description,
+            hashList[index].docType,
             hashList[index].timestamp
         );
     }

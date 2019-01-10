@@ -25,13 +25,12 @@ const FolderList = (props) => {
     <List style={root}>
     {
         hashArray.map((hashItem, index) => {
-            console.log(hashItem);
-            let date = formatDate(hashItem[2]);
+            let date = formatDate(hashItem[3]);
             let num = totalHashes-index-1;
             return(
               <Link to='/display' key={num}>
                 <ListItem  onClick={(e) => {
-                  props.setHashValue(hashItem[0], hashItem[1]);
+                  props.setHashValue(hashItem[0], hashItem[1], hashItem[2]);
                 }}>
                   <Avatar>
                     <ImageIcon />
