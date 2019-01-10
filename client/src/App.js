@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { connect } from 'react-redux';
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./utils/getWeb3";
 import "./App.css";
@@ -10,17 +11,9 @@ class App extends Component {
   // Here the password needs to be a 32byte and iv needs to be 16byte only
   // Have currently kept a default generic password which is useless but rather
   // only for demonstration purposes which currently cannot be changed
-  state = { web3: null,
-      account: null,
-      contract: null,
-      buffer: null,
-      ipfsHash: '',
-      status: '',
-      image: '',
+  state = {
       totalHashes: 0,
-      hashArray: [],
-      password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-      iv: 'aaaaaaaaaaaaaaaa'
+      hashArray: []
   };
 
   componentDidMount = async () => {
@@ -43,10 +36,8 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, account: accounts[0], contract: instance });
-      let totalHashes = await this.state.contract.methods.totalHashes().call();
-      this.setState({ totalHashes });
-      this.getAllHashValues();
+      this.props.setInitials(web3, accounts[0], instance);
+      await this.getAllHashValues();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -57,9 +48,12 @@ class App extends Component {
   };
 
   getAllHashValues = async () => {
+      const { contract } = this.props;
+      let totalHashes = await contract.methods.totalHashes().call();
+      this.setState({ totalHashes });
       let hashArray = [];
       for(let i=this.state.totalHashes-1; i>=0; i--){
-          let newHash = await this.state.contract.methods.getHash(i).call();
+          let newHash = await contract.methods.getHash(i).call();
           hashArray.push(newHash);
       }
       this.setState({ hashArray });
@@ -76,4 +70,16 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  return{
+    contract: state.contract
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return{
+    setInitials: (web3, account, contract) => dispatch({type: 'SET_ACCOUNT_CONTRACT', web3, account, contract})
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

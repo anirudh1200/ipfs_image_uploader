@@ -1,16 +1,19 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { encrypt, decrypt } from '../utils/encryption';
+import ipfs from '../utils/ipfs';
 
 class FormDialog extends Component {
   state = {
     open: false,
-    buffer: ''
+    buffer: '',
+    status: ''
   };
 
   buttonStyle = {
@@ -38,7 +41,36 @@ class FormDialog extends Component {
           this.setState({buffer: Buffer(reader.result)}, () => {
             console.log(this.state.buffer);
           });
-      }
+      };
+  };
+
+  // When the user clicks on submit it encrypts the file first then uploads to ipfs
+  handleSubmit = async e => {
+      e.preventDefault();
+      this.setState({ status: 'Uploading to ipfs' });
+      let encrypted = encrypt(this.state.buffer, this.props.password, this.props.iv);
+      console.log(encrypted);
+      this.uploadFile(encrypted);
+  };
+
+  //Upload encrypted image to ipfs
+  uploadFile = (encryptedData) => {
+      const { account, contract } = this.props;
+      ipfs.add(encryptedData, async (error, result) => {
+          if(error){
+              console.error(error);
+              return;
+          }
+          this.setState({ status: 'Uploading to blockchain' });
+          //For debugging
+          console.log(result[0].hash);
+          // Stores a given ipfsHash to contract
+          await contract.methods.addHash(result[0].hash, "Description").send({ from: account });
+          // Stores the ipfs hash to state
+          this.setState({ ipfsHash: await contract.methods.getHash(0).call() });
+          this.setState({ status: 'Transaction Successful. Image will be visible soon' });
+          this.handleClose();
+      });
   };
 
   render(){
@@ -51,13 +83,16 @@ class FormDialog extends Component {
             <DialogContentText>
               Select the image you want to upload
             </DialogContentText>
-            <input type="file" onChange={this.captureFile} style={{paddingTop: "5px"}} />
+              <input type="file" onChange={this.captureFile} style={{paddingTop: "5px"}} />
+            <DialogContentText>
+              {this.state.status}
+            </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
               Cancel
             </Button>
-            <Button onClick={this.handleClose} color="primary">
+            <Button onClick={this.handleSubmit} color="primary">
               Upload
             </Button>
           </DialogActions>
@@ -65,8 +100,15 @@ class FormDialog extends Component {
       </div>
     );
   }
-
-
 }
 
-export default FormDialog;
+const mapStateToProps = (state) => {
+  return{
+    contract: state.contract,
+    account: state.account,
+    password: state.password,
+    iv: state.iv
+  }
+}
+
+export default connect(mapStateToProps)(FormDialog);
