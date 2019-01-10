@@ -17,6 +17,8 @@ class App extends Component {
       ipfsHash: '',
       status: '',
       image: '',
+      totalHashes: 0,
+      hashArray: [],
       password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       iv: 'aaaaaaaaaaaaaaaa'
   };
@@ -42,6 +44,9 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, account: accounts[0], contract: instance });
+      let totalHashes = await this.state.contract.methods.totalHashes().call();
+      this.setState({ totalHashes });
+      this.getAllHashValues();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -51,16 +56,20 @@ class App extends Component {
     }
   };
 
+  getAllHashValues = async () => {
+      let hashArray = [];
+      for(let i=this.state.totalHashes-1; i>=0; i--){
+          let newHash = await this.state.contract.methods.getHash(i).call();
+          hashArray.push(newHash);
+      }
+      this.setState({ hashArray });
+  }
 
   render() {
-    var image;
-    if(this.state.image){
-        image = 'data:image/jpeg;base64,' + this.state.image.toString('base64');
-    }
     return (
       <div className="App">
         <h1>Your Images</h1>
-        <FolderList />
+        <FolderList hashArray={this.state.hashArray} totalHashes={this.state.totalHashes} />
       </div>
     );
   }
