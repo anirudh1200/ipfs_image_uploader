@@ -1,19 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
+import { Link } from 'react-router-dom';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import ImageIcon from '@material-ui/icons/Image';
-
-const styles = theme => ({
-  root: {
-    width: '80%',
-    margin: 'auto',
-    backgroundColor: theme.palette.background.paper,
-  },
-});
 
 const formatDate = (input) => {
     input += "000";
@@ -24,22 +15,30 @@ const formatDate = (input) => {
 }
 
 const FolderList = (props) => {
-  const { classes } = props;
   const { hashArray } = props;
-  const {totalHashes} = props;
+  const { totalHashes } = props;
+  const root = {
+      width: '80%',
+      margin: 'auto',
+    }
   return (
-    <List className={classes.root}>
+    <List style={root}>
     {
         hashArray.map((hashItem, index) => {
             console.log(hashItem);
             let date = formatDate(hashItem[2]);
+            let num = totalHashes-index-1;
             return(
-                <ListItem key={totalHashes - index -1}>
+              <Link to='/display' key={num}>
+                <ListItem  onClick={(e) => {
+                  props.setHashValue(hashItem[0], hashItem[1]);
+                }}>
                   <Avatar>
                     <ImageIcon />
                   </Avatar>
                   <ListItemText primary={hashItem[1]} secondary={date} />
                 </ListItem>
+              </Link>
             )
         })
     }
@@ -47,8 +46,4 @@ const FolderList = (props) => {
   );
 }
 
-FolderList.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(FolderList);
+export default FolderList;

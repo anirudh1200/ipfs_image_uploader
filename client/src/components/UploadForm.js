@@ -1,19 +1,21 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { encrypt, decrypt } from '../utils/encryption';
+import { encrypt } from '../utils/encryption';
 import ipfs from '../utils/ipfs';
 
 class FormDialog extends Component {
   state = {
     open: false,
     buffer: '',
-    status: ''
+    status: '',
+    description: ''
   };
 
   buttonStyle = {
@@ -30,6 +32,11 @@ class FormDialog extends Component {
   handleClose = () => {
     this.setState({ open: false });
   };
+
+  changeDescription = e => {
+    this.setState({description: e.target.value});
+    console.log(this.state.description);
+  }
 
   // To convert selected file to Uint8Array format
   captureFile = e => {
@@ -65,7 +72,7 @@ class FormDialog extends Component {
           //For debugging
           console.log(result[0].hash);
           // Stores a given ipfsHash to contract
-          await contract.methods.addHash(result[0].hash, "Description").send({ from: account });
+          await contract.methods.addHash(result[0].hash, this.state.description).send({ from: account });
           // Stores the ipfs hash to state
           this.setState({ ipfsHash: await contract.methods.getHash(0).call() });
           this.setState({ status: 'Transaction Successful. Image will be visible soon' });
@@ -83,6 +90,14 @@ class FormDialog extends Component {
             <DialogContentText>
               Select the image you want to upload
             </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Description"
+              type="text"
+              fullWidth
+              onChange={this.changeDescription}
+            />
               <input type="file" onChange={this.captureFile} style={{paddingTop: "5px"}} />
             <DialogContentText>
               {this.state.status}

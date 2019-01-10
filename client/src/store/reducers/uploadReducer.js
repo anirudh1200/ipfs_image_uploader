@@ -6,7 +6,9 @@ const initState = {
   contract: '',
   account: '',
   password: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  iv: 'aaaaaaaaaaaaaaaa'
+  iv: 'aaaaaaaaaaaaaaaa',
+  selectedHash: '',
+  selectedHashDesc: ''
 }
 
 const uploadReducer = (state = initState, action) => {
@@ -17,6 +19,12 @@ const uploadReducer = (state = initState, action) => {
         web3: action.web3,
         account: action.account,
         contract: action.contract
+      }
+    case 'CHANGE_SELECTED_HASH':
+      return{
+        ...state,
+        selectedHash: action.hashValue,
+        selectedHashValue: action.hashDesc
       }
     default:
       console.log("Default reducer");

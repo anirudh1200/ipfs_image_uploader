@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import { connect } from 'react-redux';
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import getWeb3 from "./utils/getWeb3";
 import "./App.css";
 import FolderList from './components/FolderList';
 import UploadForm from './components/UploadForm';
 import Typography from '@material-ui/core/Typography';
+import ImageDialog from './components/Dialog';
 
 class App extends Component {
   // Here the password needs to be a 32byte and iv needs to be 16byte only
@@ -61,11 +63,16 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <Typography variant='h4' style={{ margin: '2%'}} >Uploaded Images</Typography>
-        <FolderList hashArray={this.state.hashArray} totalHashes={this.state.totalHashes} />
-        <UploadForm />
-      </div>
+      <BrowserRouter>
+        <div className="App">
+          <Typography variant='h4' style={{ margin: '2%'}} >Uploaded Images</Typography>
+          <FolderList hashArray={this.state.hashArray} totalHashes={this.state.totalHashes} setHashValue={this.props.setHashValue} />
+          <UploadForm />
+          <Switch>
+            <Route path='/display' component={ImageDialog} />
+          </Switch>
+        </div>
+      </BrowserRouter>
     );
   }
 }
@@ -78,7 +85,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return{
-    setInitials: (web3, account, contract) => dispatch({type: 'SET_ACCOUNT_CONTRACT', web3, account, contract})
+    setInitials: (web3, account, contract) => dispatch({type: 'SET_ACCOUNT_CONTRACT', web3, account, contract}),
+    setHashValue: (hashValue, hashDesc) => dispatch({type: 'CHANGE_SELECTED_HASH', hashValue, hashDesc})
   }
 }
 
