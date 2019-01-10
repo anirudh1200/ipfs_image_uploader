@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./utils/getWeb3";
-import ipfs from "./ipfs";
-import { encrypt, decrypt } from './encryption';
 import "./App.css";
 import FolderList from './components/FolderList';
+import UploadForm from './components/UploadForm';
+import Typography from '@material-ui/core/Typography';
 
 class App extends Component {
   // Here the password needs to be a 32byte and iv needs to be 16byte only
@@ -68,8 +68,9 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <h1>Your Images</h1>
+        <Typography variant='h4' style={{ margin: '2%'}} >Uploaded Images</Typography>
         <FolderList hashArray={this.state.hashArray} totalHashes={this.state.totalHashes} />
+        <UploadForm />
       </div>
     );
   }

@@ -9,8 +9,8 @@ import ImageIcon from '@material-ui/icons/Image';
 
 const styles = theme => ({
   root: {
-    width: '100%',
-    maxWidth: 360,
+    width: '80%',
+    margin: 'auto',
     backgroundColor: theme.palette.background.paper,
   },
 });
